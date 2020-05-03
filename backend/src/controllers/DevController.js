@@ -38,5 +38,13 @@ module.exports = {
         }
 
         return response.json(dev);
+    },
+
+    async update(){
+        //TODO
+    },
+
+    async destroy(){
+        //TODO
     }
 }
