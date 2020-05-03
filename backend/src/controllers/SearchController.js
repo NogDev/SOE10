@@ -9,10 +9,21 @@ module.exports = {
         
         const techArray = parseStringAsArray(techs);
 
-        console.log(techArray);
-
-        return response.json({
-            devs:[]
+        const devs = await Dev.find({
+            techs: {
+                $in: techArray,
+            },
+            location: {
+                $near: {
+                    $geometry: {
+                        type:'Point',
+                        coordinates: [longitude, latitude],
+                    },
+                    $maxDistance: 10000,
+                },
+            },
         });
+
+        return response.json({ devs });
     }
 }
