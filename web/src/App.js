@@ -1,33 +1,99 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import api from './services/api';
+
 import './global.css';
 import './App.css';
 import './Sidebar.css';
 import './Main.css';
 
 function App() {
+
+  const [devs, setDevs] = useState([]);
+
+  const [github_username, setGithubUsername] = useState('');
+  const [techs, setTechs] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+
+      setLatitude(latitude);
+      setLongitude(longitude);
+    },
+    (err) => {
+      console.log(err);
+    },
+    {
+      timeout: 30000,
+    }
+  )
+  }, []);
+
+  useEffect(() => {   
+    async function loadDevs(){
+      const response = await api.get('/devs');
+
+      setDevs(response.data)
+    }
+    loadDevs();
+  }, []);
+
+  async function handleAddDev(e) {
+    e.preventDefault();
+
+     const response = await api.post('/devs', {
+       github_username,
+       techs,
+       longitude,
+       latitude,
+     })
+
+     console.log(response.data);
+
+     setGithubUsername('');
+     setTechs('');
+  }
+
+
   return (
     <div id="app">
       <aside>
         <strong>Cadastrar</strong>
-        <form>
-          <div class="input-block">
+        <form onSubmit= { handleAddDev }>
+          <div className="input-block">
             <label htmlFor="github_username">Usuário do Github</label>
-            <input name="github_username" id="github_username" required />
+            <input name="github_username" id="github_username" required 
+            value= { github_username }
+            onChange={e => setGithubUsername(e.target.value)}
+            />
           </div>
          
-          <div class="input-block">
+          <div className="input-block">
             <label htmlFor="techs">Tecnologias</label>
-            <input name="techs" id="techs" required />
+            <input name="techs" id="techs" required 
+            value= { techs }
+            onChange={e => setTechs(e.target.value)}
+            />
           </div>
 
           <div className="input-group">
-            <div class="input-block">
-              <label htmlFor="latitude">Tecnologias</label>
-              <input name="latitude" id="latitude" required />
+            <div className="input-block">
+              <label htmlFor="latitude">Latitude</label>
+              <input type="number" 
+                name="latitude" 
+                id="latitude" 
+                required 
+                value= { latitude } 
+                onChange={e => setLatitude(e.target.value)}
+              />
             </div>
-            <div class="input-block">
-              <label htmlFor="longitude">Tecnologias</label>
-              <input name="longitude" id="longitude" required />
+            <div className="input-block">
+              <label htmlFor="longitude">Longitude</label>
+              <input type="number" name="longitude" id="longitude" required value = { longitude }
+              onChange={e => setLongitude(e.target.value)}/>
             </div>
           </div>
 
@@ -36,50 +102,19 @@ function App() {
       </aside>
       <main>
         <ul>
-          <li className="dev-item">
+          {devs.map(dev => (
+            <li key={dev._id} className="dev-item">
             <header>
-              <img src="https://avatars3.githubusercontent.com/u/25827712?s=400&u=4b4df62325f2118daa9a30a9f7c4702db4d10606&v=4" alt="Nog"/>
+              <img src= { dev.avatar_url } alt={dev.name}/>
               <div className="user-info">
-                <strong>Anderson Nogueira</strong>
-                <span>Java, React</span>
+                <strong>{dev.name}</strong>
+                <span>{ dev.techs.join(', ')}</span>
               </div>
             </header>
-            <p>Não tem </p>
-            <a href="https://github.com/NogDev">Perfil no github</a>
+            <p>{ dev.bio} </p>
+            <a href={ `https://github.com/${dev.github_username}`}>Perfil no github</a>
           </li>
-          <li className="dev-item">
-            <header>
-              <img src="https://avatars3.githubusercontent.com/u/25827712?s=400&u=4b4df62325f2118daa9a30a9f7c4702db4d10606&v=4" alt="Nog"/>
-              <div className="user-info">
-                <strong>Anderson Nogueira</strong>
-                <span>Java, React</span>
-              </div>
-            </header>
-            <p>Não tem </p>
-            <a href="https://github.com/NogDev">Perfil no github</a>
-          </li>
-          <li className="dev-item">
-            <header>
-              <img src="https://avatars3.githubusercontent.com/u/25827712?s=400&u=4b4df62325f2118daa9a30a9f7c4702db4d10606&v=4" alt="Nog"/>
-              <div className="user-info">
-                <strong>Anderson Nogueira</strong>
-                <span>Java, React</span>
-              </div>
-            </header>
-            <p>Não tem </p>
-            <a href="https://github.com/NogDev">Perfil no github</a>
-          </li>
-          <li className="dev-item">
-            <header>
-              <img src="https://avatars3.githubusercontent.com/u/25827712?s=400&u=4b4df62325f2118daa9a30a9f7c4702db4d10606&v=4" alt="Nog"/>
-              <div className="user-info">
-                <strong>Anderson Nogueira</strong>
-                <span>Java, React</span>
-              </div>
-            </header>
-            <p>Não tem </p>
-            <a href="https://github.com/NogDev">Perfil no github</a>
-          </li>
+          ))}
         </ul>
       </main>
     </div>
